@@ -140,9 +140,10 @@ BOOL CHPThreadPool::Shutdown(DWORD dwMaxWait)
 
 		if(!m_stThreads.empty())
 		{
+#if !defined(__ANDROID__)
 			for(auto it = m_stThreads.begin(), end = m_stThreads.end(); it != end; ++it)
 				pthread_cancel(*it);
-
+#endif
 			m_stThreads.clear();
 
 			::SetLastError(ERROR_CANCELLED);
@@ -422,7 +423,7 @@ BOOL CHPThreadPool::CheckStarting()
 {
 	if(::InterlockedCompareExchange(&m_enState, SS_STARTING, SS_STOPPED) != SS_STOPPED)
 	{
-		::SetLastError(ERROR_INVALID_OPERATION);
+		::SetLastError(ERROR_INVALID_STATE);
 		return FALSE;
 	}
 
@@ -433,7 +434,7 @@ BOOL CHPThreadPool::CheckStarted()
 {
 	if(m_enState != SS_STARTED)
 	{
-		::SetLastError(ERROR_INVALID_OPERATION);
+		::SetLastError(ERROR_INVALID_STATE);
 		return FALSE;
 	}
 
@@ -448,7 +449,7 @@ BOOL CHPThreadPool::CheckStoping()
 		while(m_enState != SS_STOPPED)
 			::WaitFor(5);
 
-		::SetLastError(ERROR_INVALID_OPERATION);
+		::SetLastError(ERROR_INVALID_STATE);
 		return FALSE;
 	}
 

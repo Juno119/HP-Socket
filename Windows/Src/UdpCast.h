@@ -29,6 +29,8 @@
 #include "../Common/Src/BufferPool.h"
 #include "../Common/Src/CriticalSection.h"
 
+#ifdef _UDP_SUPPORT
+
 class CUdpCast : public IUdpCast
 {
 public:
@@ -101,7 +103,8 @@ protected:
 	virtual void PrepareStart();
 	virtual void Reset();
 
-	virtual void OnWorkerThreadEnd(DWORD dwThreadID) {}
+	virtual void OnWorkerThreadStart(THR_ID dwThreadID) {}
+	virtual void OnWorkerThreadEnd(THR_ID dwThreadID) {}
 
 protected:
 	void SetReserved	(PVOID pReserved)	{m_pReserved = pReserved;}						
@@ -123,7 +126,7 @@ private:
 	BOOL ReadData();
 	BOOL SendData();
 	TItem* GetSendBuffer();
-	int SendInternal(const BYTE* pBuffer, int iLength);
+	int SendInternal(TItemPtr& itPtr);
 	void WaitForWorkerThreadEnd(DWORD dwCurrentThreadID);
 
 	BOOL HandleError(WSANETWORKEVENTS& events);
@@ -167,7 +170,7 @@ public:
 
 	virtual ~CUdpCast()
 	{
-		Stop();
+		ENSURE_STOP();
 	}
 
 private:
@@ -224,3 +227,5 @@ private:
 	volatile int		m_iPending;
 	volatile BOOL		m_bPaused;
 };
+
+#endif

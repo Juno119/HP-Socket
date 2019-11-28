@@ -32,10 +32,15 @@
 #include "TcpPackServer.h"
 #include "TcpPackClient.h"
 #include "TcpPackAgent.h"
+#include "HPThreadPool.h"
+
+#ifdef _UDP_SUPPORT
 #include "UdpServer.h"
 #include "UdpClient.h"
 #include "UdpCast.h"
-#include "HPThreadPool.h"
+#include "UdpArqServer.h"
+#include "UdpArqClient.h"
+#endif
 
 #ifdef _HTTP_SUPPORT
 #include "HttpServer.h"
@@ -92,21 +97,6 @@ HPSOCKET_API ITcpPackClient* HP_Create_TcpPackClient(ITcpClientListener* pListen
 	return (ITcpPackClient*)(new CTcpPackClient(pListener));
 }
 
-HPSOCKET_API IUdpServer* HP_Create_UdpServer(IUdpServerListener* pListener)
-{
-	return new CUdpServer(pListener);
-}
-
-HPSOCKET_API IUdpClient* HP_Create_UdpClient(IUdpClientListener* pListener)
-{
-	return new CUdpClient(pListener);
-}
-
-HPSOCKET_API IUdpCast* HP_Create_UdpCast(IUdpCastListener* pListener)
-{
-	return new CUdpCast(pListener);
-}
-
 HPSOCKET_API void HP_Destroy_TcpServer(ITcpServer* pServer)
 {
 	delete pServer;
@@ -152,6 +142,33 @@ HPSOCKET_API void HP_Destroy_TcpPackClient(ITcpPackClient* pClient)
 	delete pClient;
 }
 
+#ifdef _UDP_SUPPORT
+
+HPSOCKET_API IUdpServer* HP_Create_UdpServer(IUdpServerListener* pListener)
+{
+	return new CUdpServer(pListener);
+}
+
+HPSOCKET_API IUdpClient* HP_Create_UdpClient(IUdpClientListener* pListener)
+{
+	return new CUdpClient(pListener);
+}
+
+HPSOCKET_API IUdpCast* HP_Create_UdpCast(IUdpCastListener* pListener)
+{
+	return new CUdpCast(pListener);
+}
+
+HPSOCKET_API IUdpArqServer* HP_Create_UdpArqServer(IUdpServerListener* pListener)
+{
+	return (IUdpArqServer*)(new CUdpArqServer(pListener));
+}
+
+HPSOCKET_API IUdpArqClient* HP_Create_UdpArqClient(IUdpClientListener* pListener)
+{
+	return (IUdpArqClient*)(new CUdpArqClient(pListener));
+}
+
 HPSOCKET_API void HP_Destroy_UdpServer(IUdpServer* pServer)
 {
 	delete pServer;
@@ -166,6 +183,18 @@ HPSOCKET_API void HP_Destroy_UdpCast(IUdpCast* pCast)
 {
 	delete pCast;
 }
+
+HPSOCKET_API void HP_Destroy_UdpArqServer(IUdpArqServer* pServer)
+{
+	delete pServer;
+}
+
+HPSOCKET_API void HP_Destroy_UdpArqClient(IUdpArqClient* pClient)
+{
+	delete pClient;
+}
+
+#endif
 
 /*****************************************************************************************************************************************************/
 /*************************************************************** Global Function Exports *************************************************************/

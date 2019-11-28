@@ -26,6 +26,8 @@
 #include "SocketHelper.h"
 #include "./common/GeneralHelper.h"
 
+#ifdef _UDP_SUPPORT
+
 class CUdpCast : public IUdpCast
 {
 public:
@@ -98,7 +100,8 @@ protected:
 	virtual void PrepareStart();
 	virtual void Reset();
 
-	virtual void OnWorkerThreadEnd(THR_ID dwThreadID) {}
+	virtual void OnWorkerThreadStart(THR_ID tid) {}
+	virtual void OnWorkerThreadEnd(THR_ID tid) {}
 
 protected:
 	void SetReserved	(PVOID pReserved)	{m_pReserved = pReserved;}						
@@ -133,10 +136,8 @@ public:
 	CUdpCast(IUdpCastListener* pListener)
 	: m_pListener			(pListener)
 	, m_lsSend				(m_itPool)
-	, m_soRecv				(INVALID_SOCKET)
-	, m_soSend				(INVALID_SOCKET)
-	, m_nRecvEvents			(0)
-	, m_nSendEvents			(0)
+	, m_soClient			(INVALID_SOCKET)
+	, m_nEvents				(0)
 	, m_dwConnID			(0)
 	, m_usPort				(0)
 	, m_bPaused				(FALSE)
@@ -160,17 +161,15 @@ public:
 
 	virtual ~CUdpCast()
 	{
-		Stop();
+		ENSURE_STOP();
 	}
 
 private:
 	IUdpCastListener*	m_pListener;
 	TClientCloseContext m_ccContext;
 
-	SOCKET				m_soRecv;
-	SOCKET				m_soSend;
-	SHORT				m_nRecvEvents;
-	SHORT				m_nSendEvents;
+	SOCKET				m_soClient;
+	SHORT				m_nEvents;
 	CONNID				m_dwConnID;
 
 	BOOL				m_bReuseAddress;
@@ -214,3 +213,5 @@ private:
 
 	CThread<CUdpCast, VOID, UINT> m_thWorker;
 };
+
+#endif

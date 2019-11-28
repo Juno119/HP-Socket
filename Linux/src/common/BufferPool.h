@@ -291,13 +291,7 @@ public:
 
 	void Clear()
 	{
-		T* pItem = nullptr;
-
-		while(m_lsFreeItem.TryGet(&pItem))
-			T::Destruct(pItem);
-
-		VERIFY(m_lsFreeItem.IsEmpty());
-		m_lsFreeItem.Reset();
+		m_lsFreeItem.Clear();
 
 		m_heap.Reset();
 	}
@@ -342,8 +336,8 @@ private:
 };
 
 template<class T> const DWORD CNodePoolT<T>::DEFAULT_ITEM_CAPACITY	= TItem::DEFAULT_ITEM_CAPACITY;
-template<class T> const DWORD CNodePoolT<T>::DEFAULT_POOL_SIZE		= 1200;
-template<class T> const DWORD CNodePoolT<T>::DEFAULT_POOL_HOLD		= 1200;
+template<class T> const DWORD CNodePoolT<T>::DEFAULT_POOL_SIZE		= DEFAULT_BUFFER_CACHE_POOL_SIZE;
+template<class T> const DWORD CNodePoolT<T>::DEFAULT_POOL_HOLD		= DEFAULT_BUFFER_CACHE_POOL_HOLD;
 
 using CItemPool = CNodePoolT<TItem>;
 

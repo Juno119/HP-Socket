@@ -30,20 +30,19 @@ Desc:
 
 #include "stdafx.h"
 #include "BufferPool.h"
-#include "SysHelper.h"
 #include "WaitFor.h"
 
 #pragma warning(push)
 #pragma warning(disable: 4458)
 
-const DWORD TItem::DEFAULT_ITEM_CAPACITY			= ::SysGetPageSize();
+const DWORD TItem::DEFAULT_ITEM_CAPACITY			= DEFAULT_BUFFER_CACHE_CAPACITY;
 const DWORD CBufferPool::DEFAULT_MAX_CACHE_SIZE		= 0;
 const DWORD CBufferPool::DEFAULT_ITEM_CAPACITY		= CItemPool::DEFAULT_ITEM_CAPACITY;
 const DWORD CBufferPool::DEFAULT_ITEM_POOL_SIZE		= CItemPool::DEFAULT_POOL_SIZE;
 const DWORD CBufferPool::DEFAULT_ITEM_POOL_HOLD		= CItemPool::DEFAULT_POOL_HOLD;
-const DWORD CBufferPool::DEFAULT_BUFFER_LOCK_TIME	= 15 * 1000;
-const DWORD CBufferPool::DEFAULT_BUFFER_POOL_SIZE	= 600;
-const DWORD CBufferPool::DEFAULT_BUFFER_POOL_HOLD	= 600;
+const DWORD CBufferPool::DEFAULT_BUFFER_LOCK_TIME	= DEFAULT_OBJECT_CACHE_LOCK_TIME;
+const DWORD CBufferPool::DEFAULT_BUFFER_POOL_SIZE	= DEFAULT_OBJECT_CACHE_POOL_SIZE;
+const DWORD CBufferPool::DEFAULT_BUFFER_POOL_HOLD	= DEFAULT_OBJECT_CACHE_POOL_HOLD;
 
 TItem* TItem::Construct(CPrivateHeap& heap, int capacity, BYTE* pData, int length)
 {
@@ -67,7 +66,7 @@ void TItem::Destruct(TItem* pItem)
 	heap.Free(pItem);
 }
 
-inline int TItem::Cat(const BYTE* pData, int length)
+int TItem::Cat(const BYTE* pData, int length)
 {
 	ASSERT(pData != nullptr && length > 0);
 
@@ -82,13 +81,13 @@ inline int TItem::Cat(const BYTE* pData, int length)
 	return cat;
 }
 
-inline int TItem::Cat(const TItem& other)
+int TItem::Cat(const TItem& other)
 {
 	ASSERT(this != &other);
 	return Cat(other.Ptr(), other.Size());
 }
 
-inline int TItem::Fetch(BYTE* pData, int length)
+int TItem::Fetch(BYTE* pData, int length)
 {
 	ASSERT(pData != nullptr && length > 0);
 
@@ -99,7 +98,7 @@ inline int TItem::Fetch(BYTE* pData, int length)
 	return fetch;
 }
 
-inline int TItem::Peek(BYTE* pData, int length)
+int TItem::Peek(BYTE* pData, int length)
 {
 	ASSERT(pData != nullptr && length > 0);
 
@@ -109,7 +108,7 @@ inline int TItem::Peek(BYTE* pData, int length)
 	return peek;
 }
 
-inline int TItem::Reduce(int length)
+int TItem::Reduce(int length)
 {
 	ASSERT(length > 0);
 
@@ -119,7 +118,7 @@ inline int TItem::Reduce(int length)
 	return reduce;
 }
 
-inline void	TItem::Reset(int first, int last)
+void	TItem::Reset(int first, int last)
 {
 	ASSERT(first >= -1 && first <= capacity);
 	ASSERT(last >= -1 && last <= capacity);
@@ -243,7 +242,7 @@ void TBuffer::Destruct(TBuffer* pBuffer)
 	heap.Free(pBuffer);
 }
 
-inline void TBuffer::Reset()
+void TBuffer::Reset()
 {
 	id		 = 0;
 	length	 = 0;
@@ -408,13 +407,7 @@ void CBufferPool::Clear()
 
 	m_bfCache.Reset();
 
-	TBuffer* pBuffer = nullptr;
-
-	while(m_lsFreeBuffer.TryGet(&pBuffer))
-		TBuffer::Destruct(pBuffer);
-
-	ENSURE(m_lsFreeBuffer.IsEmpty());
-	m_lsFreeBuffer.Reset();
+	m_lsFreeBuffer.Clear();
 
 	ReleaseGCBuffer(TRUE);
 	ENSURE(m_lsGCBuffer.IsEmpty());
